@@ -4,8 +4,18 @@ import  { Task } from './task.model';
 @Component({
   selector: 'task-list',
   template: `
+  <select (change)="onChange($event.target.value)">
+    <option value="allTasks" selected="selected">All Tasks</option>
+    <option value="completedTasks">Completed Tasks</option>
+    <option value="incompleteTasks">Incomplete Tasks</option>
+  </select>
+
   <ul>
-    <li (click)="isDone(currentTask)" *ngFor="let currentTask of childTaskList">{{currentTask.description}}<button (click)="editButtonHasBeenClicked(currentTask)">Edit</button></li>
+    <li *ngFor="let currentTask of childTaskList | completeness:filterByCompleteness"><span (click)="isDone(currentTask)">{{currentTask.description}}</span>
+      <input *ngIf="currentTask.done === true" type="checkbox" checked (click)="toggleDone(currentTask, false)"/>
+      <input *ngIf="currentTask.done === false" type="checkbox" (click)="toggleDone(currentTask, true)"/>
+      <button (click)="editButtonHasBeenClicked(currentTask)">Edit</button>
+    </li>
   </ul>
   `
 })
@@ -13,6 +23,8 @@ import  { Task } from './task.model';
 export class TaskListComponent {
   @Input() childTaskList: Task[];
   @Output() clickSender = new EventEmitter();
+
+  filterByCompleteness: string = "incompleteTasks";
 
   editButtonHasBeenClicked(taskToEdit: Task) {
     this.clickSender.emit(taskToEdit);
@@ -34,5 +46,13 @@ export class TaskListComponent {
     } else {
       return "bg-info";
     }
+  }
+
+  onChange(optionFromMenu) {
+    this.filterByCompleteness = optionFromMenu;
+  }
+
+  toggleDone(clickedTask: Task, setCompleteness: boolean) {
+    clickedTask.done = setCompleteness;
   }
 }
